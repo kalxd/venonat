@@ -4,5 +4,9 @@
 	"version": "1.0",
 	"options_ui": {
 		"page": "assert/option.html"
-	}
+	},
+
+	"permissions": [
+		"storage"
+	]
 }
