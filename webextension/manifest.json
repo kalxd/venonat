@@ -5,6 +5,12 @@
 	"options_ui": {
 		"page": "assert/option.html"
 	},
+	"browser_action": {
+	},
+
+	"background": {
+		"scripts": ["background.ts"]
+	},
 
 	"permissions": [
 		"storage"

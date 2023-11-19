@@ -1,19 +1,7 @@
 /// 用户存储的数据。
 import * as FP from "purify-ts";
-import { Left, Maybe, Right } from "purify-ts";
-
-const URLCodec = FP.Codec.custom<URL>({
-	decode: input => {
-		if (input instanceof URL) {
-			return Right(new URL(input));
-		}
-		else {
-			return Left(`${input}不是合法链接地址`);
-		}
-	},
-
-	encode: (u): string => u.toString()
-});
+import { Maybe } from "purify-ts";
+import { URLCodec } from "./codec";
 
 const UserStorageCodec = FP.Codec.interface({
 	remoteUrl: URLCodec

@@ -4,10 +4,11 @@ import { Form, FormAttr } from "drifloon/module/form";
 import { useDefLoader } from "drifloon/module/loader";
 import { TrimInput, RequireField, Field } from "drifloon/element";
 import { formMut } from "drifloon/data/form";
-import { must, isNotEmpty } from "drifloon/data/validate";
+import { must } from "drifloon/data/validate";
 import { Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
 import { readUserStorage, UserStorage, writeUserStorage } from "./data/db";
 import { EmLevel } from "drifloon/data/var";
+import { URLCodec } from "./data/codec";
 
 interface OptionFormAttr {
 	value: Maybe<UserStorage>;
@@ -43,7 +44,7 @@ const OptionForm: m.ClosureComponent<OptionFormAttr> = ({ attrs }) => {
 
 	const submit = () => {
 		fd.validate(data =>
-			must("服务地址", isNotEmpty(data.remoteUrl).chain(parseUrl))
+			must("服务地址", URLCodec.decode(data.remoteUrl))
 				.collect(remoteUrl => ({ remoteUrl })))
 			.ifRight(writeUserStorage);
 	};
@@ -53,7 +54,7 @@ const OptionForm: m.ClosureComponent<OptionFormAttr> = ({ attrs }) => {
 			return m<FormAttr<FormState>, {}>(Form, { formdata: fd }, [
 				m(RequireField, [
 					m("label", "服务地址"),
-					m(TrimInput, { bindValue: fd.prop("remoteUrl"), placeholder: "127.0.0.1:5000" })
+					m(TrimInput, { bindValue: fd.prop("remoteUrl"), placeholder: "http://127.0.0.1:5000" })
 				]),
 				m(Field, [
 					m(Button, { em: EmLevel.Primary, connectClick: submit }, "保存")

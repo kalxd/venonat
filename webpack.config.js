@@ -4,6 +4,8 @@ const config = {
 	mode: "production",
 
 	entry: {
+		background: "./src/background.ts",
+		main: "./src/main.ts",
 		option: "./src/option.ts"
 	},
 
