@@ -3,10 +3,9 @@ import { Button } from "drifloon/element";
 import { Form, FormAttr } from "drifloon/module/form";
 import { useDefLoader } from "drifloon/module/loader";
 import { TrimInput, RequireField, Field } from "drifloon/element";
-import { mutable } from "drifloon/data/lens";
 import { formMut } from "drifloon/data/form";
-import { must } from "drifloon/data/validate";
-import { Either, EitherAsync, Left, Maybe, Nothing, Right } from "purify-ts";
+import { must, isNotEmpty } from "drifloon/data/validate";
+import { Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
 import { readUserStorage, UserStorage, writeUserStorage } from "./data/db";
 import { EmLevel } from "drifloon/data/var";
 
@@ -26,19 +25,9 @@ const userStorageIntoFormState = (data: UserStorage): FormState => ({
 	remoteUrl: data.remoteUrl.toString()
 });
 
-const makeHttpPrefiex = (input: string): string => {
-	if (input.startsWith("http://") || input.startsWith("https://")) {
-		return input;
-	}
-	else {
-		return `http://${input}`;
-	}
-};
-
 const parseUrl = (input: string): Either<string, URL> => {
-	const baseurl = makeHttpPrefiex(input);
 	try {
-		const u = new URL(baseurl);
+		const u = new URL(input);
 		return Right(u);
 	}
 	catch {
@@ -53,7 +42,9 @@ const OptionForm: m.ClosureComponent<OptionFormAttr> = ({ attrs }) => {
 			.orDefault(defUserStorage));
 
 	const submit = () => {
-		fd.validate(data => must("服务地址", parseUrl(data.remoteUrl)).collect(remoteUrl => ({ remoteUrl })))
+		fd.validate(data =>
+			must("服务地址", isNotEmpty(data.remoteUrl).chain(parseUrl))
+				.collect(remoteUrl => ({ remoteUrl })))
 			.ifRight(writeUserStorage);
 	};
 
