@@ -9,10 +9,11 @@
 	},
 
 	"background": {
-		"scripts": ["background.ts"]
+		"scripts": ["dist/background.js"]
 	},
 
 	"permissions": [
-		"storage"
+		"storage",
+		"<all_urls>"
 	]
 }

@@ -23,3 +23,10 @@ export const URLCodec = FP.Codec.custom<URL>({
 
 	encode: (u): string => u.toString()
 });
+
+
+export const RepoListCodec = FP.Codec.interface({
+	repositories: FP.array(FP.string)
+});
+
+export type RepoList = FP.GetType<typeof RepoListCodec>;
