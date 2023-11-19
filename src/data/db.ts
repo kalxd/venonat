@@ -1,9 +1,22 @@
 /// 用户存储的数据。
 import * as FP from "purify-ts";
-import { Maybe } from "purify-ts";
+import { Left, Maybe, Right } from "purify-ts";
+
+const URLCodec = FP.Codec.custom<URL>({
+	decode: input => {
+		if (input instanceof URL) {
+			return Right(new URL(input));
+		}
+		else {
+			return Left(`${input}不是合法链接地址`);
+		}
+	},
+
+	encode: (u): string => u.toString()
+});
 
 const UserStorageCodec = FP.Codec.interface({
-	remoteUrl: FP.string
+	remoteUrl: URLCodec
 });
 
 export type UserStorage = FP.GetType<typeof UserStorageCodec>;
@@ -14,7 +27,6 @@ export const readUserStorage = async (): Promise<Maybe<UserStorage>> => {
 };
 
 export const writeUserStorage = async (data: UserStorage): Promise<void> => {
-	console.log("do this?");
-	console.log(data);
-	await browser.storage.local.set(data);
+	const output: object = UserStorageCodec.encode(data);
+	await browser.storage.local.set(output);
 };
