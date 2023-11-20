@@ -1,9 +1,9 @@
 import * as m from "mithril";
-import { Segment, Grid, Column, Button } from "drifloon/element";
+import { Segment, Grid, Column, Button, Header } from "drifloon/element";
 import { useDefLoader } from "drifloon/module/loader";
 import { getRepoList } from "../data/api";
 import { StateAttr } from "../data/attr";
-import { Color, Wide, Align } from "drifloon/data/var";
+import { Color, Wide, Align, Size } from "drifloon/data/var";
 import { Navibar } from "../page/navibar";
 import { alertText, confirmTextAsync } from "drifloon/module/modal";
 
@@ -23,19 +23,23 @@ const Repo: m.Component<RepoAttr> = {
 	view: ({ attrs }) => {
 		const viewButton = m(
 			m.route.Link,
-			{ href: `/info/${attrs.name}`, selector: "a.ui.green.min.button" },
+			{ href: `/info/${attrs.name}`, selector: "a.ui.green.tiny.button" },
 			"查看详情"
 		);
 
 		const removeButton = m(
 			Button,
-			{ color: Color.Red, connectClick: () => removeRepo(attrs.name) },
+			{
+				color: Color.Red,
+				connectClick: () => removeRepo(attrs.name),
+				size: Size.Tiny
+			},
 			"删除整个镜像！"
 		);
 
 
 		return m(Segment, [
-			m("p", attrs.name),
+			m(Header, { size: Size.Huge }, attrs.name),
 			m(Grid, [
 				m(Column, { wide: Wide.Eight }, viewButton),
 				m(Column, { align: Align.Right, wide: Wide.Eight }, removeButton)
