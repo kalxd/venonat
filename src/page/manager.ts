@@ -8,8 +8,6 @@ import { Navibar } from "../page/navibar";
 import { alertText, confirmTextAsync } from "drifloon/module/modal";
 
 const removeRepo = async (name: string) => {
-	console.log("do this?");
-	console.log(name);
 	await confirmTextAsync(`确认删除${name}镜像？`)
 		.ifJust(_ => alertText("删除成功！"))
 		.run();
@@ -55,11 +53,10 @@ export const Manager: m.ClosureComponent<ManagerAttr> = ({ attrs }) => {
 
 	update(() => getRepoList(attrs.state.remoteUrl)
 		.map(repoList => ({
-			view: () =>
-				m.fragment({}, [
-					m(Navibar),
-					m("div.ui.stacked.segments", repoList.map(r => m(Repo, { name: r })))
-				])
+			view: () => m.fragment({}, [
+				m(Navibar),
+				m("div.ui.stacked.segments", repoList.map(r => m(Repo, { name: r })))
+			])
 		})));
 
 	return {
