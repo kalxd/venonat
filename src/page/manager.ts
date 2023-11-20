@@ -21,7 +21,7 @@ const Repo: m.Component<RepoAttr> = {
 	view: ({ attrs }) => {
 		const viewButton = m(
 			m.route.Link,
-			{ href: `/info/${attrs.name}`, selector: "a.ui.green.tiny.button" },
+			{ href: `/repo/${attrs.name}`, selector: "a.ui.green.tiny.button" },
 			"查看详情"
 		);
 

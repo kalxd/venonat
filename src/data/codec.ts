@@ -30,3 +30,10 @@ export const RepoListCodec = FP.Codec.interface({
 });
 
 export type RepoList = FP.GetType<typeof RepoListCodec>;
+
+export const RepoTagListCodec = FP.Codec.interface({
+	name: FP.string,
+	tags: FP.array(FP.string)
+});
+
+export type RepoTagList = FP.GetType<typeof RepoTagListCodec>;

@@ -1,21 +1,19 @@
 import * as m from "mithril";
 import { Segment } from "drifloon/element";
+import { Maybe } from "purify-ts";
 
 export interface NavibarAttr {
-	pathList?: Array<{ name: string; link: string }>;
+	name?: string;
 }
 
 export const Navibar: m.Component<NavibarAttr> = {
 	view: ({ attrs }) => {
-		const xs = (attrs.pathList ?? [])
-			.flatMap(x => [
+		const xs = Maybe.fromNullable(attrs.name)
+			.map(name => ([
 				m("i.right.angle.icon.divider"),
-				m(
-					m.route.Link,
-					{ href: x.link, selector: "a.section" },
-					x.name
-				)
-			]);
+				m("div.active.section", name)
+			]))
+			.orDefault([]);
 
 		return m(Segment, m("div.ui.huge.breadcrumb", [
 			m(m.route.Link, { href: "/", selector: "a.section" }, "首页"),
