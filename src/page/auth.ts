@@ -1,5 +1,6 @@
 import { Container } from "drifloon/element";
 import { useLoader } from "drifloon/module/loader";
+import { ModalMask } from "drifloon/module/modal";
 import * as m from "mithril";
 import { EitherAsync, Left, Right } from "purify-ts";
 import { StateAttr } from "../data/attr";
@@ -25,6 +26,9 @@ export const authWrapper = (
 	}));
 
 	return {
-		view: () => m(Container, m(Wait))
+		view: () => m.fragment({}, [
+			m(Container, m(Wait)),
+			m(ModalMask)
+		])
 	};
 };
