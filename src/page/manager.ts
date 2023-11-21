@@ -1,17 +1,10 @@
 import * as m from "mithril";
-import { Segment, Grid, Column, Button, Header } from "drifloon/element";
+import { Segment, Grid, Column, Header } from "drifloon/element";
 import { useDefLoader } from "drifloon/module/loader";
 import { getRepoList } from "../data/api";
 import { StateAttr } from "../data/attr";
-import { Color, Wide, Align, Size } from "drifloon/data/var";
+import { Wide, Size } from "drifloon/data/var";
 import { Navibar } from "../page/navibar";
-import { alertText, confirmTextAsync } from "drifloon/module/modal";
-
-const removeRepo = async (name: string) => {
-	await confirmTextAsync(`确认删除${name}镜像？`)
-		.ifJust(_ => alertText("删除成功！"))
-		.run();
-};
 
 interface RepoAttr {
 	name: string;
@@ -25,22 +18,10 @@ const Repo: m.Component<RepoAttr> = {
 			"查看详情"
 		);
 
-		const removeButton = m(
-			Button,
-			{
-				color: Color.Red,
-				connectClick: () => removeRepo(attrs.name),
-				size: Size.Tiny
-			},
-			"删除整个镜像！"
-		);
-
-
 		return m(Segment, [
 			m(Header, { size: Size.Huge }, attrs.name),
 			m(Grid, [
 				m(Column, { wide: Wide.Eight }, viewButton),
-				m(Column, { align: Align.Right, wide: Wide.Eight }, removeButton)
 			])
 		]);
 	}

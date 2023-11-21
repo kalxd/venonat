@@ -60,4 +60,3 @@ export const removeRepoTag = (
 
 	return p.chain(p => guardResponse(_ => Right(undefined), p));
 };
-

@@ -27,25 +27,56 @@ const removeTag = async (
 		.run();
 }
 
+const copyToClip = (msg: string): Promise<void> => {
+	return navigator.clipboard.writeText(msg);
+};
+
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
 		const xs = attrs.result.tags
-			.map(tag => m("div.item", [
-				m("div.right.floated.content", [
-					m(
-						Button,
-						{
-							color: Color.Red,
-							size: Size.Tiny,
-							connectClick: () => removeTag(attrs, tag)
-						},
-						"删除"
-					)
-				]),
-				m("div.content", [
-					m("label.ui.green.label", tag)
-				])
-			]));
+			.map(tag => {
+				const copyCmdButton = m(
+					Button,
+					{
+						color: Color.Blue,
+						size: Size.Tiny,
+						connectClick: () =>
+							copyToClip(`docker pull ${attrs.result.name}:${tag}`)
+					},
+					"复制命令"
+				);
+
+				const copyTagButton = m(
+					Button,
+					{
+						color: Color.Teal,
+						size: Size.Tiny,
+						connectClick: () => copyToClip(tag)
+					},
+					"复制tag"
+				);
+
+				const removeButton = m(
+					Button,
+					{
+						color: Color.Red,
+						size: Size.Tiny,
+						connectClick: () => removeTag(attrs, tag)
+					},
+					"删除"
+				);
+
+				return m("div.item", [
+					m("div.right.floated.content", [
+						copyCmdButton,
+						copyTagButton,
+						removeButton
+					]),
+					m("div.content", [
+						m("label.ui.green.label", tag)
+					])
+				]);
+			});
 
 		return m(Segment, { shape: SegmentShape.Stack }, [
 			m("div.ui.middle.aligned.divided.list", xs)
