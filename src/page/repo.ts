@@ -18,11 +18,12 @@ const removeTag = async (
 	tag: string
 ): Promise<void> => {
 	await confirmTextAsync(`确认删除 ${tag} 吗?`)
-		.ifJust(async _ => {
-			await removeRepoTag(attr.state.remoteUrl, attr.result.name, tag)
-				.bimap(alertText, attr.refresh)
-				.run();
+		.chain( _ => {
+			return removeRepoTag(attr.state.remoteUrl, attr.result.name, tag)
+				.ifLeft(alertText)
+				.toMaybeAsync();
 		})
+		.ifJust(attr.refresh)
 		.run();
 }
 
