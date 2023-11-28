@@ -4,7 +4,7 @@ import { useDefLoader } from "drifloon/module/loader";
 import { RepoTagList } from "../data/codec";
 import { getRepoTagList, removeRepoTag } from "../data/api";
 import { Navibar } from "./navibar";
-import { Button, Segment, SegmentShape } from "drifloon/element";
+import { Button, Header, Segment } from "drifloon/element";
 import { Color, Size } from "drifloon/data/var";
 import { alertText, confirmTextAsync } from "drifloon/module/modal";
 
@@ -25,36 +25,17 @@ const removeTag = async (
 		})
 		.ifJust(attr.refresh)
 		.run();
-}
-
-const copyToClip = (msg: string): Promise<void> => {
-	return navigator.clipboard.writeText(msg);
 };
+
+const copyToClip = (msg: string): Promise<void> =>
+	navigator.clipboard.writeText(msg);
 
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
 		const xs = attrs.result.tags
 			.map(tag => {
-				const copyCmdButton = m(
-					Button,
-					{
-						color: Color.Blue,
-						size: Size.Tiny,
-						connectClick: () =>
-							copyToClip(`docker pull ${attrs.result.name}:${tag}`)
-					},
-					"复制命令"
-				);
-
-				const copyTagButton = m(
-					Button,
-					{
-						color: Color.Teal,
-						size: Size.Tiny,
-						connectClick: () => copyToClip(tag)
-					},
-					"复制tag"
-				);
+				const imagetag = `${attrs.result.name}:${tag}`;
+				const fullcmd = `docker pull ${imagetag}`;
 
 				const removeButton = m(
 					Button,
@@ -66,21 +47,29 @@ const RepoPanel: m.Component<RepoPanelAttr> = {
 					"删除"
 				);
 
-				return m("div.item", [
-					m("div.right.floated.content", [
-						copyCmdButton,
-						copyTagButton,
-						removeButton
+				return m(Segment, [
+					m(Header, { size: Size.Large, isDivid: true }, tag),
+					m(Segment, { color: Color.Teal }, [
+						m(
+							"div.ui.top.right.attached.label",
+							{ onclick: () => copyToClip(fullcmd) },
+							m("i.icon.copy.outline")
+						),
+						fullcmd
 					]),
-					m("div.content", [
-						m("label.ui.green.label", tag)
-					])
+					m(Segment, { color: Color.Teal }, [
+						m(
+							"div.ui.top.right.attached.label",
+							{ onclick: () => copyToClip(imagetag) },
+							m("i.icon.copy.outline")
+						),
+						imagetag
+					]),
+					removeButton
 				]);
 			});
 
-		return m(Segment, { shape: SegmentShape.Stack }, [
-			m("div.ui.middle.aligned.divided.list", xs)
-		]);
+		return m.fragment({}, xs);
 	}
 };
 
