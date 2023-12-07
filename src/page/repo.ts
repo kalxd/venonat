@@ -7,6 +7,7 @@ import { Navibar } from "./navibar";
 import { Button, Header, Segment } from "drifloon/element";
 import { Color, Size } from "drifloon/data/var";
 import { alertText, confirmTextAsync } from "drifloon/module/modal";
+import { CopySegment } from "./copysegment";
 
 interface RepoPanelAttr extends StateAttr {
 	result: RepoTagList,
@@ -23,12 +24,8 @@ const removeTag = async (
 				.ifLeft(alertText)
 				.toMaybeAsync();
 		})
-		.ifJust(attr.refresh)
-		.run();
+		.ifJust(attr.refresh);
 };
-
-const copyToClip = (msg: string): Promise<void> =>
-	navigator.clipboard.writeText(msg);
 
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
@@ -49,22 +46,8 @@ const RepoPanel: m.Component<RepoPanelAttr> = {
 
 				return m(Segment, [
 					m(Header, { size: Size.Large, isDivid: true }, tag),
-					m(Segment, { color: Color.Teal }, [
-						m(
-							"div.ui.top.right.attached.label",
-							{ onclick: () => copyToClip(fullcmd) },
-							m("i.icon.copy.outline")
-						),
-						fullcmd
-					]),
-					m(Segment, { color: Color.Teal }, [
-						m(
-							"div.ui.top.right.attached.label",
-							{ onclick: () => copyToClip(imagetag) },
-							m("i.icon.copy.outline")
-						),
-						imagetag
-					]),
+					m(CopySegment, { text: fullcmd }, fullcmd),
+					m(CopySegment, { text: imagetag }, imagetag),
 					removeButton
 				]);
 			});
@@ -92,11 +75,9 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 	refresh();
 
 	return {
-		view: () => {
-			return m.fragment({}, [
-				m(Navibar, { name }),
-				m(Wait)
-			]);
-		}
+		view: () => m.fragment({}, [
+			m(Navibar, { name }),
+			m(Wait)
+		])
 	};
 };
