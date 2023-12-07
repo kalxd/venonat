@@ -1,7 +1,7 @@
 {
 	"name": "venonat",
 	"dependencies": {
-		"drifloon": "0.20.20",
+		"drifloon": "0.20.21",
 		"mithril": "2.2.2",
 		"purify-ts": "2.0.1"
 	},

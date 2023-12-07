@@ -1,2 +1,4 @@
 /node_modules
 /webextension/dist
+/webextension/web-ext-artifacts/
+/venonat.zip

@@ -1,11 +1,12 @@
 import * as m from "mithril";
+import { mount } from "drifloon";
 import { Button } from "drifloon/element";
 import { Form, FormAttr } from "drifloon/module/form";
 import { useDefLoader } from "drifloon/module/loader";
 import { TrimInput, RequireField, Field } from "drifloon/element";
 import { formMut } from "drifloon/data/form";
 import { must } from "drifloon/data/validate";
-import { Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
+import { EitherAsync, Maybe, Right } from "purify-ts";
 import { readUserStorage, UserStorage, writeUserStorage } from "./data/db";
 import { EmLevel } from "drifloon/data/var";
 import { URLCodec } from "./data/codec";
@@ -25,16 +26,6 @@ const defUserStorage: FormState = {
 const userStorageIntoFormState = (data: UserStorage): FormState => ({
 	remoteUrl: data.remoteUrl.toString()
 });
-
-const parseUrl = (input: string): Either<string, URL> => {
-	try {
-		const u = new URL(input);
-		return Right(u);
-	}
-	catch {
-		return Left(`${input}不是合法网址`);
-	}
-};
 
 const OptionForm: m.ClosureComponent<OptionFormAttr> = ({ attrs }) => {
 	const fd = formMut<FormState>(
@@ -81,4 +72,4 @@ const App: m.ClosureComponent = () => {
 	};
 };
 
-m.mount(document.body, App);
+mount(App);
