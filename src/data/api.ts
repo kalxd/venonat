@@ -1,5 +1,24 @@
-import { Either, EitherAsync, Left, Right } from "purify-ts";
-import { RepoListCodec, RepoTagList, RepoTagListCodec } from "./codec";
+import { Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
+import { eitherZip } from "drifloon/data";
+import {
+	RepoListCodec,
+	repoTagFromRaw,
+	RepoTagInfo,
+	RepoTagInfoRawCodec,
+	RepoTagList,
+	RepoTagListCodec
+} from "./codec";
+
+export const guardResponseStatus = (rsp: Response): EitherAsync<string, Response> => {
+	return EitherAsync.fromPromise(async () => {
+		if (rsp.status !== 200) {
+			return Left(await rsp.text());
+		}
+		else {
+			return Right(rsp);
+		}
+	});
+};
 
 export const guardResponse = <R>(
 	f: (rsp: object) => Either<string, R>,
@@ -59,4 +78,32 @@ export const removeRepoTag = (
 	});
 
 	return p.chain(p => guardResponse(_ => Right(undefined), p));
+};
+
+export interface RepoTagInfoWithRef extends RepoTagInfo {
+	ref: string;
+}
+
+export const getTagInfo = (
+	baseurl: URL,
+	name: string,
+	tag: string
+): EitherAsync<string, [string, RepoTagInfo]> => {
+	return EitherAsync.fromPromise(async () => {
+		const url = new URL(baseurl);
+		url.pathname = `/v2/${name}/manifests/${tag}`;
+
+		const rsp = await fetch(url);
+		return Right(rsp);
+	})
+		.chain(guardResponseStatus)
+		.chain(async rsp => {
+			const id = Maybe.fromNullable(rsp.headers.get("Docker-Content-Digest"))
+				.toEither("无Docker-Content-Digest！");
+			const json = await rsp.json();
+			const result = RepoTagInfoRawCodec.decode(json)
+				.chain(repoTagFromRaw);
+
+			return eitherZip(id, result);
+		});
 };
