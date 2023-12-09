@@ -38,7 +38,8 @@ export const Manager: m.ClosureComponent<ManagerAttr> = ({ attrs }) => {
 				m(Navibar),
 				m("div.ui.stacked.segments", repoList.map(r => m(Repo, { name: r })))
 			])
-		})));
+		}))
+		.mapLeft(err => err.stack ?? err.message));
 
 	return {
 		view: () => m(Loader)

@@ -6,9 +6,10 @@ import { getRepoTagList, getTagInfo, removeRepoTag } from "../data/api";
 import { Navibar } from "./navibar";
 import { Button, Header, Segment, SegmentShape } from "drifloon/element";
 import { Color, Size } from "drifloon/data/var";
-import { alertText, confirmTextAsync } from "drifloon/module/modal";
+import { confirmTextAsync } from "drifloon/module/modal";
 import { CopySegment } from "./copysegment";
 import { EitherAsync } from "purify-ts";
+import { drainError } from "../data/error";
 
 interface TagDetail {
 	tag: string;
@@ -33,7 +34,7 @@ const removeTag = async (
 	await confirmTextAsync(`确认删除 ${tag.tag} 吗?`)
 		.chain( _ => {
 			return removeRepoTag(attr.state.remoteUrl, attr.result.name, tag.ref)
-				.ifLeft(alertText)
+				.ifLeft(drainError)
 				.toMaybeAsync();
 		})
 		.ifJust(attr.refresh);
@@ -102,7 +103,8 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 						refresh,
 						state: attrs.state
 					})
-			}));
+			}))
+			.mapLeft(err => err.stack ?? err.message);
 	});
 
 	refresh();

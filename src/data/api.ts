@@ -1,4 +1,4 @@
-import { Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
+import { Codec, GetType, Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
 import { eitherZip } from "drifloon/data";
 import {
 	RepoListCodec,
@@ -8,6 +8,17 @@ import {
 	RepoTagList,
 	RepoTagListCodec
 } from "./codec";
+import { ApiError, CodecError, fromFetch } from "./error";
+
+const decodeBody = <T>(
+	codec: Codec<T>
+): (rsp: Response) => EitherAsync<ApiError, GetType<Codec<T>>> => {
+	return rsp => EitherAsync.fromPromise(async () => {
+		const body = await rsp.json();
+		return codec.decode(body)
+			.mapLeft(CodecError.from);
+	});
+};
 
 export const guardResponseStatus = (rsp: Response): EitherAsync<string, Response> => {
 	return EitherAsync.fromPromise(async () => {
@@ -39,45 +50,39 @@ export const guardResponse = <R>(
 	});
 };
 
-export const getRepoList = (baseUrl: URL): EitherAsync<string, Array<string>> => {
-	return EitherAsync.fromPromise(async () => {
+export const getRepoList = (baseUrl: URL): EitherAsync<ApiError, Array<string>> => {
+	return fromFetch(() => {
 		const url = new URL(baseUrl);
 		url.pathname = "/v2/_catalog";
-
-		const body = await fetch(url).then(r => r.json());
-		return RepoListCodec.decode(body).map(r => r.repositories);
-	});
+		return fetch(url);
+	})
+		.chain(decodeBody(RepoListCodec))
+		.map(r => r.repositories);
 };
 
 export const getRepoTagList = (
 	baseurl: URL,
 	name: string
-): EitherAsync<string, RepoTagList> => {
-	const p = EitherAsync.fromPromise(async () => {
+): EitherAsync<ApiError, RepoTagList> => {
+	return fromFetch(() => {
 		const url = new URL(baseurl);
 		url.pathname = `/v2/${name}/tags/list`;
-
-		const body = await fetch(url);
-		return Right(body);
-	});
-
-	return p.chain(rsp => guardResponse(RepoTagListCodec.decode, rsp));
+		return fetch(url);
+	})
+		.chain(decodeBody(RepoTagListCodec));
 };
 
 export const removeRepoTag = (
 	baseurl: URL,
 	name: string,
 	tag: string
-): EitherAsync<string, void> => {
-	const p = EitherAsync.fromPromise(async () => {
+): EitherAsync<ApiError, void> => {
+	return fromFetch(() => {
 		const url = new URL(baseurl);
 		url.pathname = `/v2/${name}/manifests/${tag}`;
-
-		const rsp = await fetch(url, { method: "DELETE" });
-		return Right(rsp);
-	});
-
-	return p.chain(p => guardResponse(_ => Right(undefined), p));
+		return fetch(url, { method: "DELETE" });
+	})
+		.map(_ => {});
 };
 
 export interface RepoTagInfoWithRef extends RepoTagInfo {
@@ -88,21 +93,20 @@ export const getTagInfo = (
 	baseurl: URL,
 	name: string,
 	tag: string
-): EitherAsync<string, [string, RepoTagInfo]> => {
-	return EitherAsync.fromPromise(async () => {
+): EitherAsync<ApiError, [string, RepoTagInfo]> => {
+	return fromFetch(() => {
 		const url = new URL(baseurl);
 		url.pathname = `/v2/${name}/manifests/${tag}`;
-
-		const rsp = await fetch(url);
-		return Right(rsp);
+		return fetch(url);
 	})
-		.chain(guardResponseStatus)
 		.chain(async rsp => {
 			const id = Maybe.fromNullable(rsp.headers.get("Docker-Content-Digest"))
-				.toEither("无Docker-Content-Digest！");
+				.toEither("无Docker-Content-Digest！")
+				.mapLeft(CodecError.from);
 			const json = await rsp.json();
 			const result = RepoTagInfoRawCodec.decode(json)
-				.chain(repoTagFromRaw);
+				.chain(repoTagFromRaw)
+				.mapLeft(CodecError.from);
 
 			return eitherZip(id, result);
 		});
