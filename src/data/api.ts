@@ -1,4 +1,4 @@
-import { Codec, GetType, Either, EitherAsync, Left, Maybe, Right } from "purify-ts";
+import { Codec, GetType, EitherAsync, Maybe } from "purify-ts";
 import { eitherZip } from "drifloon/data";
 import {
 	RepoListCodec,
@@ -17,36 +17,6 @@ const decodeBody = <T>(
 		const body = await rsp.json();
 		return codec.decode(body)
 			.mapLeft(CodecError.from);
-	});
-};
-
-export const guardResponseStatus = (rsp: Response): EitherAsync<string, Response> => {
-	return EitherAsync.fromPromise(async () => {
-		if (rsp.status !== 200) {
-			return Left(await rsp.text());
-		}
-		else {
-			return Right(rsp);
-		}
-	});
-};
-
-export const guardResponse = <R>(
-	f: (rsp: object) => Either<string, R>,
-	rsp: Response
-): EitherAsync<string, R> => {
-	return EitherAsync.fromPromise(async () => {
-		if (rsp.status !== 200) {
-			return Left(await rsp.text());
-		}
-
-		try {
-			const json = await rsp.json();
-			return f(json);
-		}
-		catch (e) {
-			return Left(String(e));
-		}
 	});
 };
 
