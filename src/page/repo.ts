@@ -14,7 +14,7 @@ import { TagNotFound } from "./tip";
 
 interface RepoPanelAttr extends StateAttr {
 	name: string;
-	tag: string;
+	tagName: string;
 	info: RepoTagInfo;
 	refresh: () => void;
 }
@@ -22,9 +22,9 @@ interface RepoPanelAttr extends StateAttr {
 const removeTag = async (
 	attr: RepoPanelAttr,
 ): Promise<void> => {
-	await confirmTextAsync(`确认删除 ${attr.tag} 吗?`)
+	await confirmTextAsync(`确认删除 ${attr.tagName} 吗?`)
 		.chain( _ => {
-			return removeRepoTag(attr.state.remoteUrl, attr.name, attr.tag)
+			return removeRepoTag(attr.state.remoteUrl, attr.name, attr.tagName)
 				.ifLeft(drainError)
 				.toMaybeAsync();
 		})
@@ -33,7 +33,7 @@ const removeTag = async (
 
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
-		const imagetag = `${attrs.name}:${attrs.tag}`;
+		const imagetag = `${attrs.name}:${attrs.tagName}`;
 		const fullcmd = `docker pull ${imagetag}`;
 
 		const removeButton = m(
@@ -49,7 +49,7 @@ const RepoPanel: m.Component<RepoPanelAttr> = {
 		const datestring = `创建日期: ${attrs.info.history[0].v1Compatibility.created.toLocaleString()}`;
 
 		return m(Segment, [
-			m(Header, { size: Size.Large, isDivid: true }, attrs.tag),
+			m(Header, { size: Size.Large, isDivid: true }, attrs.tagName),
 			m(Segment, { shape: SegmentShape.Basic }, [
 				m("p", datestring)
 			]),
@@ -82,13 +82,16 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 			.map(result => {
 				const xs = result.tagList
 					.map(tag => tag.info.caseOf({
-						Just: t => m<RepoPanelAttr, {}>(RepoPanel, {
-							...attrs,
-							name: result.name,
-							tag: tag.tag,
-							info: t,
-							refresh
-						}),
+						Just: t => {
+							const attr: RepoPanelAttr = {
+								...attrs,
+								name: result.name,
+								tagName: tag.tag,
+								info: t,
+								refresh
+							};
+							return m<RepoPanelAttr, {}>(RepoPanel, attr);
+						},
 						Nothing: () => m<any, {}>(TagNotFound, { tagName: tag.tag })
 					}));
 
