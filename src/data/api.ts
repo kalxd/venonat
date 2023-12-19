@@ -41,16 +41,43 @@ export const getRepoTagList = (
 		.chain(decodeBody(RepoTagListCodec));
 };
 
+const getTagRealDegit = (
+	baseurl: URL,
+	name: string,
+	tag: string
+): EitherAsync<ApiError, string> => {
+	return fromFetch(() => {
+		const url = new URL(baseurl);
+		url.pathname = `/v2/${name}/manifests/${tag}`;
+
+		const init: RequestInit = {
+			method: "GET",
+			headers: {
+				Accept: "application/vnd.docker.distribution.manifest.v2+json"
+			}
+		};
+
+		return fetch(url, init);
+	})
+		.chain(async rsp => {
+			const d = rsp.headers.get("Docker-Content-Digest");
+			return Maybe.fromNullable(d).toEither(CodecError.from("Docker-Content-Digest无值！"));
+		});
+};
+
 export const removeRepoTag = (
 	baseurl: URL,
 	name: string,
 	tag: string
 ): EitherAsync<ApiError, void> => {
-	return fromFetch(() => {
-		const url = new URL(baseurl);
-		url.pathname = `/v2/${name}/manifests/${tag}`;
-		return fetch(url, { method: "DELETE" });
-	})
+	return getTagRealDegit(baseurl, name, tag)
+		.chain(degit => {
+			return fromFetch(() => {
+				const url = new URL(baseurl);
+				url.pathname = `/v2/${name}/manifests/${degit}`;
+				return fetch(url, { method: "DELETE" });
+			});
+		})
 		.map(_ => {});
 };
 

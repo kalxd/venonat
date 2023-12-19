@@ -75,7 +75,7 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 								info,
 								tag
 							}));
-					})
+					});
 				return EitherAsync.all(taskList)
 					.map(tagList => ({ name, tagList }));
 			})

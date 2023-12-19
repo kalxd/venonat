@@ -25,7 +25,7 @@ export const recoverNotFound = <R>(
 };
 
 export const drainError = async (err: ApiError): Promise<void> => {
-	const text = err.stack ?? err.message;
+	const text = err.message;
 	await alertText(text);
 };
 
