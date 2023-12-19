@@ -10,30 +10,21 @@ import { confirmTextAsync } from "drifloon/module/modal";
 import { CopySegment } from "./copysegment";
 import { EitherAsync } from "purify-ts";
 import { drainError } from "../data/error";
-
-interface TagDetail {
-	tag: string;
-	ref: string;
-	info: RepoTagInfo;
-}
-
-interface RepoDetail {
-	name: string;
-	tagList: Array<TagDetail>;
-}
+import { TagNotFound } from "./tip";
 
 interface RepoPanelAttr extends StateAttr {
-	result: RepoDetail;
+	name: string;
+	tag: string;
+	info: RepoTagInfo;
 	refresh: () => void;
 }
 
 const removeTag = async (
 	attr: RepoPanelAttr,
-	tag: TagDetail
 ): Promise<void> => {
-	await confirmTextAsync(`确认删除 ${tag.tag} 吗?`)
+	await confirmTextAsync(`确认删除 ${attr.tag} 吗?`)
 		.chain( _ => {
-			return removeRepoTag(attr.state.remoteUrl, attr.result.name, tag.ref)
+			return removeRepoTag(attr.state.remoteUrl, attr.name, attr.tag)
 				.ifLeft(drainError)
 				.toMaybeAsync();
 		})
@@ -42,35 +33,30 @@ const removeTag = async (
 
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
-		const xs = attrs.result.tagList
-			.map(tag => {
-				const imagetag = `${attrs.result.name}:${tag.tag}`;
-				const fullcmd = `docker pull ${imagetag}`;
+		const imagetag = `${attrs.name}:${attrs.tag}`;
+		const fullcmd = `docker pull ${imagetag}`;
 
-				const removeButton = m(
-					Button,
-					{
-						color: Color.Red,
-						size: Size.Tiny,
-						connectClick: () => removeTag(attrs, tag)
-					},
-					"删除"
-				);
+		const removeButton = m(
+			Button,
+			{
+				color: Color.Red,
+				size: Size.Tiny,
+				connectClick: () => removeTag(attrs)
+			},
+			"删除"
+		);
 
-				const datestring = `创建日期: ${tag.info.history[0].v1Compatibility.created.toLocaleString()}`;
+		const datestring = `创建日期: ${attrs.info.history[0].v1Compatibility.created.toLocaleString()}`;
 
-				return m(Segment, [
-					m(Header, { size: Size.Large, isDivid: true }, tag.tag),
-					m(Segment, { shape: SegmentShape.Basic }, [
-						m("p", datestring)
-					]),
-					m(CopySegment, { text: fullcmd }, fullcmd),
-					m(CopySegment, { text: imagetag }, imagetag),
-					removeButton
-				]);
-			});
-
-		return m.fragment({}, xs);
+		return m(Segment, [
+			m(Header, { size: Size.Large, isDivid: true }, attrs.tag),
+			m(Segment, { shape: SegmentShape.Basic }, [
+				m("p", datestring)
+			]),
+			m(CopySegment, { text: fullcmd }, fullcmd),
+			m(CopySegment, { text: imagetag }, imagetag),
+			removeButton
+		]);
 	}
 };
 
@@ -85,26 +71,31 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 				const taskList = result.tags
 					.map(tag => {
 						return getTagInfo(attrs.state.remoteUrl, name, tag)
-							.map(([ref, info]) => ({
-								ref,
+							.map(info => ({
 								info,
 								tag
 							}));
 					})
 				return EitherAsync.all(taskList)
-					.map(tagList => ({ name, tagList }))
-					.ifRight(console.log);
+					.map(tagList => ({ name, tagList }));
 			})
-			.map(result => ({
-				view: () => m(
-					RepoPanel,
-					{
-						result,
-						refresh,
-						state: attrs.state
-					})
-			}))
-			.mapLeft(err => err.stack ?? err.message);
+			.map(result => {
+				const xs = result.tagList
+					.map(tag => tag.info.caseOf({
+						Just: t => m<RepoPanelAttr, {}>(RepoPanel, {
+							...attrs,
+							name: result.name,
+							tag: tag.tag,
+							info: t,
+							refresh
+						}),
+						Nothing: () => m<any, {}>(TagNotFound, { tag })
+					}));
+
+				return {
+					view: () => m.fragment({}, xs)
+				};
+			})
 	});
 
 	refresh();

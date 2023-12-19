@@ -1,5 +1,4 @@
-import { Codec, GetType, EitherAsync, Maybe } from "purify-ts";
-import { eitherZip } from "drifloon/data";
+import { Codec, GetType, EitherAsync, Maybe, Just, Nothing } from "purify-ts";
 import {
 	RepoListCodec,
 	repoTagFromRaw,
@@ -8,7 +7,7 @@ import {
 	RepoTagList,
 	RepoTagListCodec
 } from "./codec";
-import { ApiError, CodecError, fromFetch } from "./error";
+import { ApiError, CodecError, fromFetch, recoverNotFound } from "./error";
 
 const decodeBody = <T>(
 	codec: Codec<T>
@@ -63,21 +62,14 @@ export const getTagInfo = (
 	baseurl: URL,
 	name: string,
 	tag: string
-): EitherAsync<ApiError, [string, RepoTagInfo]> => {
+): EitherAsync<ApiError, Maybe<RepoTagInfo>> => {
 	return fromFetch(() => {
 		const url = new URL(baseurl);
 		url.pathname = `/v2/${name}/manifests/${tag}`;
 		return fetch(url);
 	})
-		.chain(async rsp => {
-			const id = Maybe.fromNullable(rsp.headers.get("Docker-Content-Digest"))
-				.toEither("无Docker-Content-Digest！")
-				.mapLeft(CodecError.from);
-			const json = await rsp.json();
-			const result = RepoTagInfoRawCodec.decode(json)
-				.chain(repoTagFromRaw)
-				.mapLeft(CodecError.from);
-
-			return eitherZip(id, result);
-		});
+		.chain(decodeBody(RepoTagInfoRawCodec))
+		.chain(async s => repoTagFromRaw(s).mapLeft(CodecError.from))
+		.map(Just)
+		.chainLeft(recoverNotFound(_ => Nothing));
 };
