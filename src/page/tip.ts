@@ -20,13 +20,13 @@ export const Tip: m.Component = {
 };
 
 export interface TagNotFoundAttr {
-	tag: string;
+	tagName: string;
 }
 
 export const TagNotFound: m.Component<TagNotFoundAttr> = {
 	view: ({ attrs }) => {
 		return m(Segment, { em: EmLevel.Secondary }, [
-			m(Header, { size: Size.Large, isDivid: true }, attrs.tag),
+			m(Header, { size: Size.Large, isDivid: true }, attrs.tagName),
 			"该标签的镜像不存在！"
 		]);
 	}

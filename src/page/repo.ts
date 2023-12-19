@@ -89,7 +89,7 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 							info: t,
 							refresh
 						}),
-						Nothing: () => m<any, {}>(TagNotFound, { tag })
+						Nothing: () => m<any, {}>(TagNotFound, { tagName: tag.tag })
 					}));
 
 				return {
