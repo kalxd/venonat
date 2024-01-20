@@ -35,7 +35,7 @@ export const fromFetch = (
 	return EitherAsync.fromPromise(async () => {
 		try {
 			const rsp = await action();
-			if (rsp.status === 200) {
+			if ([200, 202].includes(rsp.status)) {
 				return Right(rsp);
 			}
 
