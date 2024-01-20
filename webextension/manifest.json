@@ -3,7 +3,7 @@
 	"name": "venonat",
 	"author": "荀涧林",
 	"description": "一个docker register的http接口可视化图形界面，方便日常镜像管理。",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"icons": {
 		"32": "assert/32.png",
 		"64": "assert/64.png"
