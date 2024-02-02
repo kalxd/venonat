@@ -35,7 +35,7 @@ export const CopySegment: m.ClosureComponent<CopySegmentAttr> = ({ attrs }) =>  
 
 			return m("div.ui.secondary.segment", [
 				m(
-					"div.ui.top.right.attached.label",
+					"a.ui.top.right.attached.label",
 					{ onclick: copy },
 					labelText
 				),
