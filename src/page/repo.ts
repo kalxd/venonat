@@ -33,7 +33,7 @@ const removeTag = async (
 
 const RepoPanel: m.Component<RepoPanelAttr> = {
 	view: ({ attrs }) => {
-		const imagetag = `${attrs.name}:${attrs.tagName}`;
+		const imagetag = `${attrs.state.remoteUrl.host}/${attrs.name}:${attrs.tagName}`;
 		const fullcmd = `docker pull ${imagetag}`;
 
 		const removeButton = m(

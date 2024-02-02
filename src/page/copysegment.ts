@@ -1,4 +1,4 @@
-import { mutable } from "drifloon/data/internal/lens";
+import { mutable } from "drifloon/data/lens";
 import * as m from "mithril";
 import { Maybe, Nothing, Just } from "purify-ts";
 
