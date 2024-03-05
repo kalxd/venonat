@@ -48,6 +48,7 @@ const RepoPanel: m.Component<RepoPanelAttr> = {
 
 		const datestring = `创建日期: ${attrs.info.history[0].v1Compatibility.created.toLocaleString()}`;
 
+
 		return m(Segment, [
 			m(Header, { size: Size.Large, isDivid: true }, attrs.tagName),
 			m(Segment, { shape: SegmentShape.Basic }, [
@@ -80,23 +81,26 @@ export const Repo: m.ClosureComponent<RepoAttr> = ({ attrs }) => {
 					.map(tagList => ({ name, tagList }));
 			})
 			.map(result => {
-				const xs = result.tagList
-					.map(tag => tag.info.caseOf({
-						Just: t => {
-							const attr: RepoPanelAttr = {
-								...attrs,
-								name: result.name,
-								tagName: tag.tag,
-								info: t,
-								refresh
-							};
-							return m<RepoPanelAttr, {}>(RepoPanel, attr);
-						},
-						Nothing: () => m<any, {}>(TagNotFound, { tagName: tag.tag })
-					}));
-
 				return {
-					view: () => m.fragment({}, xs)
+					view: () => {
+						const xs = result.tagList
+							.map(tag => tag.info.caseOf({
+								Just: t => {
+									const attr: RepoPanelAttr = {
+										...attrs,
+										name: result.name,
+										tagName: tag.tag,
+										info: t,
+										refresh
+									};
+
+									return m<RepoPanelAttr, {}>(RepoPanel, attr);
+								},
+								Nothing: () => m<any, {}>(TagNotFound, { tagName: tag.tag })
+							}));
+
+						return m.fragment({}, xs);
+					}
 				};
 			})
 	});
